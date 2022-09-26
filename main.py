@@ -6,7 +6,7 @@ from copy import deepcopy
 
 history = []
 PATH = 'images/'
-W = 20
+W = 40
 i = 0
 grid = []
 
@@ -62,6 +62,7 @@ def lowest_entropy():
     for key in data:
         if len(data[key]) == 0:
             data[key] = [1]*100
+    print(len(data[min(list(data.keys()))]))
     return rand.choice(data[min(list(data.keys()))])
 
 def update(x, y, choice):
@@ -78,22 +79,41 @@ def update(x, y, choice):
         except:pass
             
 im = Image.new('RGB', (W*25, W*25), (51, 51, 51))
+blank = Image.new('RGB', (25, 25), (51, 51, 51))
 images = import_images('images/')
 grid = generate_grid(W, images)
 x, y = rand.randrange(W), rand.randrange(W)
-choice = rand.choice(images.copy())
+choice = rand.choice(deepcopy(images))
+history = []
 update(x, y, choice)
-
-for x in range(100):
-    print(lowest_entropy())
+avoid = ''
+while True:
     x, y = lowest_entropy()
-    print(x, y)
-    update(x, y, rand.choice(grid[y][x]))
+    count = 0
+    f = False
+    copy = deepcopy(grid[y][x])
+    try:
+        copy.remove(avoid)
+    except:pass
+    
+    update(x, y, rand.choice(copy))
     for y_ in range(W):
         for x_ in range(W):
-            if len(grid[y_][x_]) == 0:
-                print('AAAAAAAAAAAA')
             if len(grid[y_][x_]) == 1:
+                count += 1
                 im.paste(grid[y_][x_][0], (x_*25, y_*25))
+            elif len(grid[y_][x_]) == 0:
+                grid = deepcopy(history[-1])
+                history.pop()
+                f = True
+                avoid = grid[y_][x_]
+            else:
+                im.paste(blank, (x_*25, y_*25))
+    if not f:
+        if count == W*W:
+            print('done')
+            break
+        history.append(deepcopy(grid))
     im.save('test.png')
+im.save('test.png')
 im.show()
