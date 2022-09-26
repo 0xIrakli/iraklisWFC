@@ -3,12 +3,10 @@ import random as rand
 import os
 import numpy as np
 from copy import deepcopy
-import sys
-sys.setrecursionlimit(5000)
 
 history = []
 PATH = 'images/'
-W = 5
+W = 20
 i = 0
 grid = []
 
@@ -52,56 +50,50 @@ darkside_func = {
     (-1,0): lambda arr: [list(a[-1]) for a in arr],
 }
 
-def collapse(x, y, i):
-    f = 0
-    for y_ in range(len(grid)):
-        for x_ in range(len(grid[y_])):
-            f += len(grid[y_][x_])
-    if f == len(grid)*len(grid[y_]):
-        print('done')
-        quit()
-    if i >= 500:
-        print('xuina')
-        quit()
-    if len(grid[y][x]) != 1:
-        this = grid[y][x]
-        rem = []
-        for X, Y in func.keys():
-            try:
-                if len(grid[y+Y][x+X]) == 1:
-                    i2 = grid[y+Y][x+X][0]
-                    for i1 in this:
-                        if func[(X, Y)](conv(i1)) != darkside_func[(X, Y)](conv(i2)):
-                            rem.append(i1)
-            except: pass
-        for r in rem:
-            if r in this:
-                this.remove(r)
-        if len(this) <= 1:
-            for i, yy in enumerate(deepcopy(history[-1])):
-                grid[i] = yy
-            history.pop()
-            collapse(x, y, i+1)
-        else:
-            grid[y][x] = [rand.choice(this)]
+def lowest_entropy():
+    data = {}
+    for y in range(len(grid)):
+        for x in range(len(grid[0])):
+            l = len(grid[y][x])
+            if l > 1:
+                if l not in data:
+                    data[l] = []
+                data[l].append((x, y))
+    for key in data:
+        if len(data[key]) == 0:
+            data[key] = [1]*100
+    return rand.choice(data[min(list(data.keys()))])
+
+def update(x, y, choice):
+    grid[y][x] = [choice]
+    for X, Y in func.keys():
+        try:
+            rem = []
+            for im in grid[y+Y][x+X]:
+                if func[X, Y](conv(choice)) != darkside_func[X, Y](conv(im)):
+                    rem.append(im)
+            for img in rem:
+                if img in grid[y+Y][x+X]:
+                    grid[y+Y][x+X].remove(img)
+        except:pass
+            
+im = Image.new('RGB', (W*25, W*25), (51, 51, 51))
+images = import_images('images/')
+grid = generate_grid(W, images)
+x, y = rand.randrange(W), rand.randrange(W)
+choice = rand.choice(images.copy())
+update(x, y, choice)
+
+for x in range(100):
+    print(lowest_entropy())
+    x, y = lowest_entropy()
+    print(x, y)
+    update(x, y, rand.choice(grid[y][x]))
     for y_ in range(W):
         for x_ in range(W):
             if len(grid[y_][x_]) == 0:
                 print('AAAAAAAAAAAA')
             if len(grid[y_][x_]) == 1:
                 im.paste(grid[y_][x_][0], (x_*25, y_*25))
-    history.append(deepcopy(grid))
     im.save('test.png')
-    while True:
-        X, Y = rand.choice(list(func.keys()))
-        if 0 <= x+X < W and 0 <= y+Y < W:
-            collapse(x+X, y+Y, i+1)
-            break
-
-im = Image.new('RGB', (W*25, W*25), (51, 51, 51))
-images = import_images('images/')
-grid = generate_grid(W, images)
-choice = rand.choice(images)
-x, y = rand.randrange(0, W), rand.randrange(0, W)
-collapse(x, y, 0)
 im.show()
