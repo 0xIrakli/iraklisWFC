@@ -6,5 +6,5 @@
 - [X] Add code to save grid as image
 - [X] Create main loop logic
 - [ ] Create proper history system (backtracking)
-- [ ] Objectify the wem... I mean make a grid object. (implement object oriented grid)
+- [ ] Objectify the wem... I mean make a grid object. (make grid object oriented (its not now (this is probably too many brackets)))
 - [ ] Display generation as it happens.
