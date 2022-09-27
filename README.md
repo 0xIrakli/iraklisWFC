@@ -1,4 +1,4 @@
-# iraklisWFC
+# iraklis WAVE FUNCTION COLLAPSE
 
 ## TODO:
 - [X] Create Image import/rotate/save_in_variable function
